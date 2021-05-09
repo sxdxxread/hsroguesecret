@@ -1,42 +1,39 @@
-// roguesecret.cpp : by fixpont
-
+// Hearthstone Rogue challenge solution, c++17 compiler required - by fixpont
 #include <iostream>
-#include <algorithm>
 #include <array>
 
-std::array<std::array<int, 7>, 7> changematrix{{
+static constexpr std::array<std::array<unsigned char, 7>, 7> changematrix{ {
     {1,2,1,8,2,0,7},
     {8,1,8,8,3,8,8},
     {0,8,1,1,2,8,8},
     {0,0,1,1,8,3,7},
     {7,0,9,2,1,8,3},
     {2,3,2,7,0,1,1},
-    {8,8,9,7,0,3,1}
-}};
+    {8,8,9,7,0,3,1}}};
 
-std::array<int, 7> KeyVector{ 0,0,0,0,0,0,0 };
-std::array<int, 7> ResultVector{ 0,0,0,0,0,0,0 };
-std::array<int, 7> OriginalVector{ 5,1,0,2,0,5,2 };
+static constexpr auto mod10lookuptable = [] {
+    std::array<unsigned char, 255> array{};
+    for (unsigned char i = 0; i < 255; i++) array[i] = i % 10;
+    return array;
+}();
 
-void PushBoxesByKey()
-{
-    ResultVector = OriginalVector;
-    for (int i = 0; i < 7; i++)
-        for(int z = KeyVector[i]; z > 0; z--)
-            for (int j = 0; j < 7; j++) ResultVector[j] = ResultVector[j] + changematrix[i][j];
-    for (int i = 0; i < 7; i++) ResultVector[i] = ResultVector[i] % 10;
-}
+std::array<unsigned char, 7> KeyVector{ 0,0,0,0,0,0,0 };
+std::array<unsigned char, 8> ResultVector{ 0,0,0,0,0,0,0,0 };
+std::array<unsigned char, 8> OriginalVector{ 5,1,0,2,0,5,2,0 };
 
 int main()
 {
-    for (int currentkey = 0; currentkey < 9999999; currentkey++)
+    for (int currentkey = 0; currentkey < 10000000; currentkey++)
     {
-        if (currentkey % 100000 == 0) std::cout << "Searching range: [" << currentkey << "..." << currentkey + 100000 << "]" << std::endl;
         for (int position = 6, keycopy = currentkey; position >= 0; keycopy /= 10, position--) KeyVector[position] = keycopy % 10;
-        PushBoxesByKey();
-        if (std::equal(ResultVector.begin() + 1, ResultVector.end(), ResultVector.begin()))
+        ResultVector = OriginalVector;
+        for (int i = 0; i < 7; i++)
+            for (int z = KeyVector[i]; z > 0; z--)
+                *(unsigned long long*)(&ResultVector[0]) = *(unsigned long long*)(&ResultVector[0]) + *(unsigned long long*)(&changematrix[i][0]);
+        for (int i = 0; i < 7; i++) ResultVector[i] = mod10lookuptable[ResultVector[i]];
+        if (*(unsigned int*)(&ResultVector[0]) == *(unsigned int*)(&ResultVector[3]) && *(unsigned short*)(&ResultVector[0]) == *(unsigned short*)(&ResultVector[5]))
         {
-            for (const auto& i : KeyVector) std::cout << i << " ";
+            for (const auto& i : KeyVector) std::cout << (unsigned short)i << " ";
             std::cout << std::endl;
         }
     }
